@@ -22,6 +22,6 @@ export const config: Config = {
   rabbitmqHost: String(process.env.RABBITMQ_HOST),
   tranzakApiUrl: String(process.env.TRANZAK_API_URL),
   tranzakApiKey: String(process.env.TRANZAK_API_KEY),
-  tranzakApiSecret: String(process.env.TRANZAK_API_SECRET),
+  tranzakApiSecret: String(process.env.TRANZAK_API_SECRET_KEY),
   frontEndUrl: String(process.env.FRONT_END_URL),
 };

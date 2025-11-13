@@ -6,12 +6,10 @@ import {
   GetPaymentTokenResponseData,
   IPatientDocument,
   ISessionDocument,
-  ISpecialtyDocument,
   NotFoundError,
   PatientModel,
   SessionModel,
   SessionStatus,
-  SpecialtyModel,
   TranzakApiResponse,
   TranzakCreatePaymentSessionRequestDto,
   TranzakGetPaymentTokenRequestDto,
@@ -22,6 +20,9 @@ import { SpecialtyOutputDto } from "docta-package";
 import { config } from "../config";
 
 export class PaymentService {
+  private paymentToken: string | null = null;
+  private paymentTokenExpiry: number | null = null;
+
   public createPaymentSession = async (
     sessionId: string,
     user: LoggedInUserTokenData
@@ -41,16 +42,19 @@ export class PaymentService {
       throw new NotFoundError(EnumStatusCode.NOT_FOUND, "Session not found");
     }
 
-    if (session.status === SessionStatus.Paid) {
+    if (session.status === SessionStatus.PAID) {
       throw new BadRequestError(
         EnumStatusCode.SESSION_PAID_ALREADY,
         "Session is paid already"
       );
     }
 
-    if (session.status !== SessionStatus.Created) {
+    if (
+      session.status !== SessionStatus.CREATED &&
+      session.status !== SessionStatus.AWAITING_PAYMENT_CONFIRMATION
+    ) {
       throw new BadRequestError(
-        EnumStatusCode.CAN_ONLY_PAY_FOR_CREATED_SESSION,
+        EnumStatusCode.CAN_ONLY_PAY_FOR_CREATED_OR_AWAITING_PAYMENT_CONFIRMATION_SESSION,
         "Session is too late to pay"
       );
     }
@@ -85,17 +89,31 @@ export class PaymentService {
 
     const response = await axios.post<
       TranzakApiResponse<CreatePaymentSessionResponseData>
-    >(`${config.tranzakApiUrl}/payment/create`, tranzakData, {
+    >(`${config.tranzakApiUrl}/xp021/v1/request/create`, tranzakData, {
       headers: {
         Authorization: `Bearer ${paymentToken}`,
       },
+      timeout: 10000,
     });
 
-    console.log("Payment session: ", response.data);
+    session.status = SessionStatus.AWAITING_PAYMENT_CONFIRMATION;
+    await session.save();
     return { url: response.data.data.links.paymentAuthUrl };
   };
 
   private getPaymentToken = async () => {
+    const now = Date.now();
+
+    // Reuse token if still valid
+    if (
+      this.paymentToken &&
+      this.paymentTokenExpiry &&
+      now < this.paymentTokenExpiry
+    ) {
+      console.log("Reusing existing payment token...");
+      return this.paymentToken;
+    }
+
     console.log("Getting payment token...");
 
     const data: TranzakGetPaymentTokenRequestDto = {
@@ -105,7 +123,7 @@ export class PaymentService {
 
     const response = await axios.post<
       TranzakApiResponse<GetPaymentTokenResponseData>
-    >(`${config.tranzakApiUrl}/auth/token`, data);
+    >(`${config.tranzakApiUrl}/auth/token`, data, { timeout: 10000 });
 
     if (!response.data.success) {
       console.log("Payment token error: ", response.data);
@@ -113,6 +131,10 @@ export class PaymentService {
     }
 
     console.log("Payment token: ", response.data);
+
+    this.paymentToken = response.data.data.token;
+    this.paymentTokenExpiry = now + response.data.data.expiresIn * 1000;
+
     return response.data.data.token;
   };
 }
