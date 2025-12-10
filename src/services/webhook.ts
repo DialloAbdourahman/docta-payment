@@ -1,27 +1,12 @@
 import {
-  BadRequestError,
-  CreatePaymentSessionResponseData,
-  EnumStatusCode,
-  EnumTranzakCurrency,
-  GetPaymentTokenResponseData,
-  IPatientDocument,
   IPeriodDocument,
   ISessionDocument,
-  NotFoundError,
-  PatientModel,
   PeriodModel,
   PeriodStatus,
   SessionModel,
   SessionStatus,
-  TranzakApiResponse,
-  TranzakCreatePaymentSessionRequestDto,
-  TranzakGetPaymentTokenRequestDto,
   TranzakWebhookResponse,
 } from "docta-package";
-import axios from "axios";
-import { LoggedInUserTokenData } from "docta-package";
-import { config } from "../config";
-import { Request } from "express";
 import mongoose from "mongoose";
 
 export class WebhookService {
