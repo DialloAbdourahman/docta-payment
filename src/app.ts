@@ -21,7 +21,7 @@ app.use("/api/payment/v1/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // API routes
 app.use("/api/payment/v1/payment", paymentRouter);
 
-app.post("/webhook", async (req, res) => {
+app.post("/tranzak/webhook", async (req, res) => {
   console.log("✅ Webhook received:", req.body);
 
   const data = req.body as TranzakWebhookResponse;
