@@ -2,7 +2,13 @@ import "reflect-metadata";
 import app from "./app";
 import { config } from "./config";
 import mongoose from "mongoose";
-import { LoggedInUserTokenData } from "docta-package";
+import {
+  Exchanges,
+  LoggedInUserTokenData,
+  Queues,
+  RoutingKey,
+} from "docta-package";
+import { listenToQueue } from "./listener";
 
 declare global {
   namespace Express {
@@ -17,6 +23,12 @@ const start = async () => {
     await mongoose.connect(config.mongoUri);
     console.log("MongoDB connected");
     console.log("Registered models:", mongoose.modelNames());
+
+    await listenToQueue({
+      exchange: Exchanges.DOCTA_EXCHANGE,
+      queue: Queues.PAYMENT_QUEUE,
+      routingKeys: [RoutingKey.INITIATE_REFUND],
+    });
 
     app.listen(config.port, () => {
       console.log(`Doctor payment running on port ${config.port}`);
