@@ -3,7 +3,6 @@ import {
   CreatePaymentSessionResponseData,
   EnumStatusCode,
   EnumTranzakCurrency,
-  GetPaymentTokenResponseData,
   IPatientDocument,
   ISessionDocument,
   NotFoundError,
@@ -12,17 +11,13 @@ import {
   SessionStatus,
   TranzakApiResponse,
   TranzakCreatePaymentSessionRequestDto,
-  TranzakGetPaymentTokenRequestDto,
 } from "docta-package";
 import axios from "axios";
 import { LoggedInUserTokenData } from "docta-package";
-import { SpecialtyOutputDto } from "docta-package";
 import { config } from "../config";
+import { BaseTranzakPaymentService } from "./base.tranzak.payment";
 
-export class PaymentService {
-  private paymentToken: string | null = null;
-  private paymentTokenExpiry: number | null = null;
-
+export class PaymentService extends BaseTranzakPaymentService {
   public createPaymentSession = async (
     sessionId: string,
     user: LoggedInUserTokenData
@@ -99,42 +94,5 @@ export class PaymentService {
     session.status = SessionStatus.AWAITING_PAYMENT_CONFIRMATION;
     await session.save();
     return { url: response.data.data.links.paymentAuthUrl };
-  };
-
-  private getPaymentToken = async () => {
-    const now = Date.now();
-
-    // Reuse token if still valid
-    if (
-      this.paymentToken &&
-      this.paymentTokenExpiry &&
-      now < this.paymentTokenExpiry
-    ) {
-      console.log("Reusing existing payment token...");
-      return this.paymentToken;
-    }
-
-    console.log("Getting payment token...");
-
-    const data: TranzakGetPaymentTokenRequestDto = {
-      appId: config.tranzakApiKey,
-      appKey: config.tranzakApiSecret,
-    };
-
-    const response = await axios.post<
-      TranzakApiResponse<GetPaymentTokenResponseData>
-    >(`${config.tranzakApiUrl}/auth/token`, data, { timeout: 10000 });
-
-    if (!response.data.success) {
-      console.log("Payment token error: ", response.data);
-      throw new BadRequestError(EnumStatusCode.PAYMENT_ERROR, "Payment error");
-    }
-
-    console.log("Payment token: ", response.data);
-
-    this.paymentToken = response.data.data.token;
-    this.paymentTokenExpiry = now + response.data.data.expiresIn * 1000;
-
-    return response.data.data.token;
   };
 }

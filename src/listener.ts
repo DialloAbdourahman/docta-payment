@@ -15,6 +15,8 @@ export async function listenToQueue({
   routingKeys,
 }: ListenerOption) {
   try {
+    const paymentEventsHandler = new PaymentEventsHandler();
+
     const connection = await amqp.connect(config.rabbitmqHost);
     const channel = await connection.createChannel();
     const dlq = `${queue}.dlq`;
@@ -55,7 +57,7 @@ export async function listenToQueue({
 
           switch (routingKey) {
             case RoutingKey.INITIATE_REFUND:
-              await PaymentEventsHandler.initiateRefundHandler(
+              await paymentEventsHandler.initiateRefundHandler(
                 data as InitiateRefundEvent
               );
               break;
