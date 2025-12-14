@@ -66,6 +66,8 @@ const webhookHandler = async (req: Request, res: Response) => {
     const data =
       req.body as TranzakWebhookResponse<TranzakWebhookRefundResource>;
 
+    console.log("✅ Webhook received for refund:", data);
+
     switch (data.resource.status) {
       // case EnumTranzakRefundStatus.SUCCESSFUL:
       //   await WebhookService.handleSuccessfulRefund({
