@@ -1,6 +1,8 @@
 import {
   EnumTranzakEventType,
   EnumTranzakPaymentStatus,
+  TranzakWebhookPaymentResource,
+  TranzakWebhookRefundResource,
   TranzakWebhookResponse,
 } from "docta-package";
 import { Request, Response } from "express";
@@ -9,7 +11,7 @@ import { WebhookService } from "../services/webhook";
 const webhookHandler = async (req: Request, res: Response) => {
   console.log("✅ Webhook received:", req.body);
 
-  const data = req.body as TranzakWebhookResponse;
+  const eventType = req.body.eventType as EnumTranzakEventType;
 
   const callSuccess = () => {
     res.sendStatus(200);
@@ -21,7 +23,10 @@ const webhookHandler = async (req: Request, res: Response) => {
     return;
   };
 
-  if (data.eventType === EnumTranzakEventType.REQUEST_COMPLETED) {
+  if (eventType === EnumTranzakEventType.REQUEST_COMPLETED) {
+    const data =
+      req.body as TranzakWebhookResponse<TranzakWebhookPaymentResource>;
+
     switch (data.resource.status) {
       case EnumTranzakPaymentStatus.SUCCESSFUL:
         await WebhookService.handleSuccessfulPayment({
@@ -51,6 +56,38 @@ const webhookHandler = async (req: Request, res: Response) => {
           callFailure,
         });
         break;
+      default:
+        res.sendStatus(200);
+        break;
+    }
+  }
+
+  if (eventType === EnumTranzakEventType.REFUND_COMPLETED) {
+    const data =
+      req.body as TranzakWebhookResponse<TranzakWebhookRefundResource>;
+
+    switch (data.resource.status) {
+      // case EnumTranzakRefundStatus.SUCCESSFUL:
+      //   await WebhookService.handleSuccessfulRefund({
+      //     data,
+      //     callSuccess,
+      //     callFailure,
+      //   });
+      //   break;
+      // case EnumTranzakRefundStatus.CANCELLED:
+      //   await WebhookService.handleCancelledRefund({
+      //     data,
+      //     callSuccess,
+      //     callFailure,
+      //   });
+      //   break;
+      // case EnumTranzakRefundStatus.FAILED:
+      //   await WebhookService.handleFailedRefund({
+      //     data,
+      //     callSuccess,
+      //     callFailure,
+      //   });
+      //   break;
       default:
         res.sendStatus(200);
         break;

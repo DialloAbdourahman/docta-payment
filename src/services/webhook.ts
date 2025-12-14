@@ -5,6 +5,7 @@ import {
   PeriodStatus,
   SessionModel,
   SessionStatus,
+  TranzakWebhookPaymentResource,
   TranzakWebhookResponse,
 } from "docta-package";
 import mongoose from "mongoose";
@@ -15,7 +16,7 @@ export class WebhookService {
     callSuccess,
     callFailure,
   }: {
-    data: TranzakWebhookResponse;
+    data: TranzakWebhookResponse<TranzakWebhookPaymentResource>;
     callSuccess: () => void;
     callFailure: () => void;
   }): Promise<void> => {
@@ -121,7 +122,7 @@ export class WebhookService {
     callSuccess,
     callFailure,
   }: {
-    data: TranzakWebhookResponse;
+    data: TranzakWebhookResponse<TranzakWebhookPaymentResource>;
     callSuccess: () => void;
     callFailure: () => void;
   }): Promise<void> => {
@@ -232,7 +233,7 @@ export class WebhookService {
     callSuccess,
     callFailure,
   }: {
-    data: TranzakWebhookResponse;
+    data: TranzakWebhookResponse<TranzakWebhookPaymentResource>;
     callSuccess: () => void;
     callFailure: () => void;
   }): Promise<void> => {
