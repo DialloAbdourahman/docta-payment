@@ -77,7 +77,9 @@ export class PaymentService extends BaseTranzakPaymentService {
       amount: session.pricing.totalPrice,
       currencyCode: EnumTranzakCurrency.XAF,
       description: `A session between doctor "${session.doctor.title}" and patient "${patient?.user.name}"`,
-      mchTransactionRef: `${session.id}-${Date.now()}`,
+      mchTransactionRef: JSON.stringify({
+        sessionId: session.id,
+      }),
       returnUrl: `${config.frontEndUrl}/payment/success?session=${session.id}`,
       cancelUrl: `${config.frontEndUrl}/payment/failure?session=${session.id}`,
     };

@@ -23,7 +23,18 @@ export class PaymentEventsHandler extends BaseTranzakPaymentService {
 
     // Manage idempotency and errors well
     if (!session || !session.payment?.transactionId) {
-      throw new Error("Session not found");
+      console.log("Session with id " + data.sessionId + " not found");
+      return;
+    }
+
+    if (session.refund?.status === EnumRefundStatus.PROCESSING) {
+      console.log("Refund is already processing, skipping");
+      return;
+    }
+
+    if (session.refund?.status === EnumRefundStatus.COMPLETED) {
+      console.log("Refund is already completed, skipping");
+      return;
     }
 
     const paymentToken = await this.getPaymentToken();
@@ -32,23 +43,48 @@ export class PaymentEventsHandler extends BaseTranzakPaymentService {
       reasonCode:
         EnumTranzakReasonCode.MUTUAL_AGREEMENT_BETWEEN_BUYER_AND_SELLER,
       refundedTransactionId: session?.payment?.transactionId,
-      merchantRefundNumber: `${session.id}-${Date.now()}`,
+      merchantRefundNumber: JSON.stringify({
+        sessionId: session.id,
+      }),
       note: `Refund initiated by ${data.refundDirection}`,
     };
 
-    const response = await axios.post<
-      TranzakApiResponse<CreateRefundResponseData>
-    >(`${config.tranzakApiUrl}/xp021/v1/refund/create`, tranzakData, {
-      headers: {
-        Authorization: `Bearer ${paymentToken}`,
-      },
-      timeout: 10000,
-    });
+    try {
+      const response = await axios.post<
+        TranzakApiResponse<CreateRefundResponseData>
+      >(`${config.tranzakApiUrl}/xp021/v1/refund/create`, tranzakData, {
+        headers: {
+          Authorization: `Bearer ${paymentToken}`,
+        },
+        timeout: 10000,
+      });
 
-    if (response.data.success) {
-      // Maybe store some data here e.g refund_started_at
-      console.log("It was a success");
-      console.log(response.data);
+      console.log("Refund response:", response.data.data.status);
+
+      if (response.data.success) {
+        console.log("Refund initiated successfully");
+        session.refund = {
+          refundStartedAt: Date.now(),
+          status: EnumRefundStatus.PROCESSING,
+          direction: data.refundDirection,
+        };
+      } else {
+        console.log("Refund failed to initiate");
+        session.refund = {
+          refundFailedAt: Date.now(),
+          status: EnumRefundStatus.FAILED_AT_INITIATING,
+          direction: data.refundDirection,
+        };
+      }
+      await session.save();
+    } catch (error) {
+      session.refund = {
+        refundFailedAt: Date.now(),
+        status: EnumRefundStatus.FAILED_AT_INITIATING,
+        direction: data.refundDirection,
+      };
+      await session.save();
+      console.log("Error initiating refund:", error);
     }
   };
 }

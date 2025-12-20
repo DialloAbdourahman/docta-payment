@@ -36,14 +36,14 @@ const webhookHandler = async (req: Request, res: Response) => {
         });
         break;
       case EnumTranzakPaymentStatus.CANCELLED:
-        await WebhookService.handleCancelledPayment({
+        await WebhookService.handleFailedPayment({
           data,
           callSuccess,
           callFailure,
         });
         break;
       case EnumTranzakPaymentStatus.CANCELLED_BY_PAYER:
-        await WebhookService.handleCancelledPayment({
+        await WebhookService.handleFailedPayment({
           data,
           callSuccess,
           callFailure,

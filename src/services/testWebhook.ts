@@ -2,6 +2,7 @@ import {
   EnumTranzakCurrency,
   EnumTranzakEventType,
   EnumTranzakPaymentStatus,
+  TranzakWebhookPaymentResource,
 } from "docta-package";
 import { WebhookService } from "./webhook";
 import { TranzakWebhookResponse } from "docta-package";
@@ -116,7 +117,7 @@ const callFailure = () => {
 const run = async () => {
   await mongoose.connect(config.mongoUri);
   WebhookService.handleSuccessfulPayment({
-    data: paymentSuccessfulWebhook as TranzakWebhookResponse,
+    data: paymentSuccessfulWebhook as TranzakWebhookResponse<TranzakWebhookPaymentResource>,
     callSuccess,
     callFailure,
   });
