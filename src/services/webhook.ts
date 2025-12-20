@@ -187,8 +187,8 @@ export class WebhookService {
 
       session.status = SessionStatus.PAYMENT_FAILED;
       session.tranzakErrorDetails = {
-        errorCode: data.resource.errorCode,
-        errorMessage: data.resource.errorMessage,
+        errorCode: data.resource.errorCode as number,
+        errorMessage: data.resource.errorMessage as string,
       };
       console.log(
         "  ➜ Session status updated to:",
