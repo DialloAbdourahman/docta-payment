@@ -60,7 +60,7 @@ export class PaymentEventsHandler extends BaseTranzakPaymentService {
         timeout: 10000,
       });
 
-      console.log("Refund response:", response.data.data.status);
+      console.log("Refund response:", response);
 
       if (response.data.success) {
         console.log("Refund initiated successfully");

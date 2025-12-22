@@ -69,21 +69,21 @@ const webhookHandler = async (req: Request, res: Response) => {
     console.log("✅ Webhook received for refund:", data);
 
     switch (data.resource.status) {
-      // case EnumTranzakRefundStatus.SUCCESSFUL:
+      // case EnumTranzakWebhookRefundStatus.SUCCESSFUL:
       //   await WebhookService.handleSuccessfulRefund({
       //     data,
       //     callSuccess,
       //     callFailure,
       //   });
       //   break;
-      // case EnumTranzakRefundStatus.CANCELLED:
+      // case EnumTranzakWebhookRefundStatus.CANCELLED:
       //   await WebhookService.handleCancelledRefund({
       //     data,
       //     callSuccess,
       //     callFailure,
       //   });
       //   break;
-      // case EnumTranzakRefundStatus.FAILED:
+      // case EnumTranzakWebhookRefundStatus.FAILED:
       //   await WebhookService.handleFailedRefund({
       //     data,
       //     callSuccess,
