@@ -8,7 +8,7 @@ import {
   NotFoundError,
   PatientModel,
   SessionModel,
-  SessionStatus,
+  EnumSessionStatus,
   TranzakApiResponse,
   TranzakCreatePaymentSessionRequestDto,
 } from "docta-package";
@@ -37,7 +37,7 @@ export class PaymentService extends BaseTranzakPaymentService {
       throw new NotFoundError(EnumStatusCode.NOT_FOUND, "Session not found");
     }
 
-    if (session.status === SessionStatus.PAID) {
+    if (session.status === EnumSessionStatus.PAID) {
       throw new BadRequestError(
         EnumStatusCode.SESSION_PAID_ALREADY,
         "Session is paid already"
@@ -45,8 +45,8 @@ export class PaymentService extends BaseTranzakPaymentService {
     }
 
     if (
-      session.status !== SessionStatus.CREATED &&
-      session.status !== SessionStatus.AWAITING_PAYMENT_CONFIRMATION
+      session.status !== EnumSessionStatus.CREATED &&
+      session.status !== EnumSessionStatus.AWAITING_PAYMENT_CONFIRMATION
     ) {
       throw new BadRequestError(
         EnumStatusCode.CAN_ONLY_PAY_FOR_CREATED_OR_AWAITING_PAYMENT_CONFIRMATION_SESSION,
@@ -93,7 +93,7 @@ export class PaymentService extends BaseTranzakPaymentService {
       timeout: 10000,
     });
 
-    session.status = SessionStatus.AWAITING_PAYMENT_CONFIRMATION;
+    session.status = EnumSessionStatus.AWAITING_PAYMENT_CONFIRMATION;
     await session.save();
     return { url: response.data.data.links.paymentAuthUrl };
   };

@@ -4,7 +4,7 @@ import {
   PeriodModel,
   PeriodStatus,
   SessionModel,
-  SessionStatus,
+  EnumSessionStatus,
   TranzakWebhookPaymentResource,
   TranzakWebhookResponse,
 } from "docta-package";
@@ -61,7 +61,7 @@ export class WebhookService {
       console.log("✅ Period found:", period._id);
       console.log("📊 Current period status:", period.status);
 
-      if (session.status === SessionStatus.PAID) {
+      if (session.status === EnumSessionStatus.PAID) {
         console.log("⚠️  Session already marked as PAID - skipping processing");
         callSuccess();
         return;
@@ -71,8 +71,8 @@ export class WebhookService {
       period.status = PeriodStatus.Occupied;
       console.log("  ➜ Period status updated to:", PeriodStatus.Occupied);
 
-      session.status = SessionStatus.PAID;
-      console.log("  ➜ Session status updated to:", SessionStatus.PAID);
+      session.status = EnumSessionStatus.PAID;
+      console.log("  ➜ Session status updated to:", EnumSessionStatus.PAID);
 
       session.payment = {
         transactionId: data.resource.transactionId,
@@ -171,8 +171,8 @@ export class WebhookService {
       console.log("📊 Current period status:", period.status);
 
       if (
-        session.status === SessionStatus.PAID ||
-        session.status === SessionStatus.PAYMENT_FAILED
+        session.status === EnumSessionStatus.PAID ||
+        session.status === EnumSessionStatus.PAYMENT_FAILED
       ) {
         console.log(
           "⚠️  Session already marked as PAID or FAILED - skipping processing"
@@ -185,14 +185,14 @@ export class WebhookService {
       period.status = PeriodStatus.Available;
       console.log("  ➜ Period status updated to:", PeriodStatus.Available);
 
-      session.status = SessionStatus.PAYMENT_FAILED;
+      session.status = EnumSessionStatus.PAYMENT_FAILED;
       session.tranzakErrorDetails = {
         errorCode: data.resource.errorCode as number,
         errorMessage: data.resource.errorMessage as string,
       };
       console.log(
         "  ➜ Session status updated to:",
-        SessionStatus.PAYMENT_FAILED
+        EnumSessionStatus.PAYMENT_FAILED
       );
 
       session.payment = {
